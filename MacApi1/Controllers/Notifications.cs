@@ -22,10 +22,21 @@ namespace MacApi1.Controllers
         }
 
         // GET: api/Notifications
+        // GET: api/Notifications/notificationcount
+        [Route("notificationcount")]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Notification>>> GetNotification()
+        public async Task<ActionResult<NotificationCountResult>> GetNotification()
         {
-            return await _context.Notification.ToListAsync();
+            var count = (from not in _context.Notification
+                         select not).CountAsync();
+
+            NotificationCountResult result = new NotificationCountResult
+            {
+                Count = await count
+            };
+
+            return result;
+            //return await _context.Notification.ToListAsync();
         }
 
         // GET: api/Notifications/5
@@ -65,8 +76,8 @@ namespace MacApi1.Controllers
                     return NotFound();
                 }
                 else
-                {
                     throw;
+                {
                 }
             }
 

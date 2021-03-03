@@ -1,10 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 namespace MacApi1.Models
 {
-    public class IHubClient
+    public interface IHubClient
     {
-        public IHubClient()
-        {
-        }
+        Task BroadcastMessage();
     }
 }

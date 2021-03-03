@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MacApi1.Models;
 using MacApi1.Repo;
+using Microsoft.AspNetCore.SignalR;
 
 namespace MacApi1.Controllers
 {
@@ -15,10 +16,13 @@ namespace MacApi1.Controllers
     public class EmployeeController : ControllerBase
     {
         private readonly DataContext _context;
+        private readonly IHubContext<BroadcastHub, IHubClient> _hubContext;
 
-        public EmployeeController(DataContext context)
+        public EmployeeController(DataContext context, IHubContext<BroadcastHub, IHubClient> hub)
         {
             _context = context;
+            _hubContext = hub;
+
         }
 
         // GET: api/Employee
@@ -79,9 +83,17 @@ namespace MacApi1.Controllers
         public async Task<ActionResult<Employee>> PostEmployee(Employee employee)
         {
             _context.Employees.Add(employee);
+            Notification notification = new Notification() // creating notification message
+            {
+                EmployeeName = employee.Name,
+                TranType = "ADD"
+            };
+            //add to data base
+            _context.Notification.Add(notification);
             try
             {
                 await _context.SaveChangesAsync();
+                await _hubContext.Clients.All.BroadcastMessage();// Broadcasting after new record
             }
             catch (DbUpdateException)
             {
@@ -94,6 +106,7 @@ namespace MacApi1.Controllers
                     throw;
                 }
             }
+
 
             return CreatedAtAction("GetEmployee", new { id = employee.Id }, employee);
         }
